@@ -21,7 +21,7 @@ final class Version20260122000001 extends AbstractMigration
     {
         // this up() migration is auto-generated, please modify it to your needs
         $this->addSql('CREATE TABLE contracts (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id INT AUTO_INCREMENT PRIMARY KEY,
             contract_number VARCHAR(50) NOT NULL UNIQUE,
             contract_date DATETIME NOT NULL,
             contract_value NUMERIC(12, 2) NOT NULL,

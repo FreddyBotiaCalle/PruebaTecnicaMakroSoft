@@ -42,7 +42,7 @@ class CreateContractRequestNormalizer implements NormalizerInterface, Denormaliz
     public function denormalize(mixed $data, string $type, ?string $format = null, array $context = []): mixed
     {
         if ($type !== CreateContractRequest::class) {
-            return null;
+            throw new \InvalidArgumentException('Cannot denormalize to ' . $type);
         }
 
         $request = new CreateContractRequest();
@@ -52,6 +52,8 @@ class CreateContractRequestNormalizer implements NormalizerInterface, Denormaliz
         $request->setPaymentMethod($data['paymentMethod'] ?? null);
         $request->setClientName($data['clientName'] ?? null);
         $request->setDescription($data['description'] ?? null);
+
+        return $request;
 
         return $request;
     }

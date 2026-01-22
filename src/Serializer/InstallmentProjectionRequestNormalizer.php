@@ -39,7 +39,7 @@ class InstallmentProjectionRequestNormalizer implements NormalizerInterface, Den
     public function denormalize(mixed $data, string $type, ?string $format = null, array $context = []): mixed
     {
         if ($type !== InstallmentProjectionRequest::class) {
-            return null;
+            throw new \InvalidArgumentException('Cannot denormalize to ' . $type);
         }
 
         $request = new InstallmentProjectionRequest();

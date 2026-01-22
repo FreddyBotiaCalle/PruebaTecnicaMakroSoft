@@ -2,89 +2,27 @@
 
 namespace App\Service;
 
+use App\Entity\Contract;
+use DateTime;
+use Doctrine\ORM\EntityManagerInterface;
+
 /**
- * Servicio para almacenar contratos en memoria y archivo JSON
- * Actúa como un repositorio temporal sin acceso a base de datos
+ * Servicio para almacenar contratos en MySQL usando Doctrine ORM
+ * Acceso a base de datos a través de EntityManager
  */
 class ContractStorage
 {
-    private static array $contracts = [];
-    private static int $nextId = 1;
-    private static string $storageFile = __DIR__ . '/../../var/contracts.json';
-    private static bool $initialized = false;
-
-    /**
-     * Inicializar el almacenamiento desde archivo si existe
-     */
-    public static function initialize(): void
-    {
-        if (self::$initialized) {
-            return;
-        }
-
-        if (file_exists(self::$storageFile)) {
-            $data = json_decode(file_get_contents(self::$storageFile), true);
-            if ($data) {
-                self::$contracts = $data['contracts'] ?? [];
-                self::$nextId = $data['nextId'] ?? 1;
-            }
-        }
-
-        // Datos iniciales de demostración si está vacío
-        if (empty(self::$contracts)) {
-            self::$contracts = [
-                1 => [
-                    'id' => 1,
-                    'contractNumber' => 'CNT-2025-001',
-                    'contractDate' => '2025-01-22',
-                    'contractValue' => 10000,
-                    'paymentMethod' => 'PayPal',
-                    'clientName' => 'Cliente ABC',
-                    'description' => 'Contrato de servicios profesionales',
-                    'status' => 'ACTIVE',
-                    'createdAt' => '2025-01-22 09:15:00',
-                ],
-                2 => [
-                    'id' => 2,
-                    'contractNumber' => 'CNT-2025-002',
-                    'contractDate' => '2025-01-22',
-                    'contractValue' => 25000,
-                    'paymentMethod' => 'PayOnline',
-                    'clientName' => 'Empresa XYZ',
-                    'description' => 'Contrato de consultoría empresarial',
-                    'status' => 'PENDING',
-                    'createdAt' => '2025-01-22 10:30:00',
-                ]
-            ];
-            self::$nextId = 3;
-        }
-
-        self::$initialized = true;
-    }
-
-    /**
-     * Guardar los contratos en el archivo JSON
-     */
-    private static function save(): void
-    {
-        $dir = dirname(self::$storageFile);
-        if (!is_dir($dir)) {
-            mkdir($dir, 0755, true);
-        }
-
-        file_put_contents(self::$storageFile, json_encode([
-            'contracts' => self::$contracts,
-            'nextId' => self::$nextId
-        ], JSON_PRETTY_PRINT));
-    }
+    public function __construct(
+        private EntityManagerInterface $entityManager
+    ) {}
 
     /**
      * Obtener un contrato por ID
      */
     public static function getContract(int $id): ?array
     {
-        self::initialize();
-        return self::$contracts[$id] ?? null;
+        // Este método será reemplazado por inyección de dependencias
+        return null;
     }
 
     /**
@@ -92,8 +30,32 @@ class ContractStorage
      */
     public static function getAllContracts(): array
     {
-        self::initialize();
-        return array_values(self::$contracts);
+        // Este método será reemplazado por inyección de dependencias
+        return [];
+    }
+
+    /**
+     * Obtener un contrato por ID (versión de instancia)
+     */
+    public function getContractById(int $id): ?array
+    {
+        $contract = $this->entityManager->getRepository(Contract::class)->find($id);
+        
+        if (!$contract) {
+            return null;
+        }
+
+        return $this->contractToArray($contract);
+    }
+
+    /**
+     * Obtener todos los contratos (versión de instancia)
+     */
+    public function getAllContractsFromDb(): array
+    {
+        $contracts = $this->entityManager->getRepository(Contract::class)->findAll();
+        
+        return array_map(fn($contract) => $this->contractToArray($contract), $contracts);
     }
 
     /**
@@ -101,24 +63,33 @@ class ContractStorage
      */
     public static function createContract(array $data): array
     {
-        self::initialize();
-        $id = self::$nextId++;
+        // Será reemplazado por la versión de instancia
+        return [];
+    }
 
-        $contract = [
-            'id' => $id,
-            'contractNumber' => $data['contractNumber'] ?? 'CNT-2025-' . str_pad($id, 3, '0', STR_PAD_LEFT),
-            'contractDate' => $data['contractDate'] ?? date('Y-m-d'),
-            'contractValue' => (float)($data['contractValue'] ?? 0),
-            'paymentMethod' => $data['paymentMethod'] ?? 'PayPal',
-            'clientName' => $data['clientName'] ?? 'Sin nombre',
-            'description' => $data['description'] ?? '',
-            'status' => $data['status'] ?? 'PENDING',
-            'createdAt' => date('Y-m-d H:i:s'),
-        ];
+    /**
+     * Crear un nuevo contrato (versión de instancia)
+     */
+    public function createNewContract(array $data): array
+    {
+        $contract = new Contract();
+        $contract->setContractNumber($data['contractNumber'] ?? 'CNT-' . date('Y-m-d-His'));
+        
+        // Parsear fecha
+        $dateString = $data['contractDate'] ?? date('Y-m-d');
+        $contract->setContractDate(new DateTime($dateString));
+        
+        $contract->setContractValue((float)($data['contractValue'] ?? 0));
+        $contract->setPaymentMethod($data['paymentMethod'] ?? 'PayPal');
+        $contract->setClientName($data['clientName'] ?? 'Sin nombre');
+        $contract->setDescription($data['description'] ?? '');
+        $contract->setStatus($data['status'] ?? 'PENDING');
 
-        self::$contracts[$id] = $contract;
-        self::save();
-        return $contract;
+        // Guardar en MySQL
+        $this->entityManager->persist($contract);
+        $this->entityManager->flush();
+
+        return $this->contractToArray($contract);
     }
 
     /**
@@ -126,38 +97,47 @@ class ContractStorage
      */
     public static function updateContract(int $id, array $data): ?array
     {
-        self::initialize();
-        if (!isset(self::$contracts[$id])) {
+        // Será reemplazado por la versión de instancia
+        return null;
+    }
+
+    /**
+     * Actualizar un contrato (versión de instancia)
+     */
+    public function updateExistingContract(int $id, array $data): ?array
+    {
+        $contract = $this->entityManager->getRepository(Contract::class)->find($id);
+        
+        if (!$contract) {
             return null;
         }
 
-        $contract = self::$contracts[$id];
-
         if (isset($data['contractNumber'])) {
-            $contract['contractNumber'] = $data['contractNumber'];
+            $contract->setContractNumber($data['contractNumber']);
         }
         if (isset($data['contractDate'])) {
-            $contract['contractDate'] = $data['contractDate'];
+            $contract->setContractDate(new DateTime($data['contractDate']));
         }
         if (isset($data['contractValue'])) {
-            $contract['contractValue'] = (float)$data['contractValue'];
+            $contract->setContractValue((float)$data['contractValue']);
         }
         if (isset($data['paymentMethod'])) {
-            $contract['paymentMethod'] = $data['paymentMethod'];
+            $contract->setPaymentMethod($data['paymentMethod']);
         }
         if (isset($data['clientName'])) {
-            $contract['clientName'] = $data['clientName'];
+            $contract->setClientName($data['clientName']);
         }
         if (isset($data['description'])) {
-            $contract['description'] = $data['description'];
+            $contract->setDescription($data['description']);
         }
         if (isset($data['status'])) {
-            $contract['status'] = $data['status'];
+            $contract->setStatus($data['status']);
         }
 
-        self::$contracts[$id] = $contract;
-        self::save();
-        return $contract;
+        $contract->setUpdatedAt(new DateTime());
+        $this->entityManager->flush();
+
+        return $this->contractToArray($contract);
     }
 
     /**
@@ -165,23 +145,53 @@ class ContractStorage
      */
     public static function deleteContract(int $id): bool
     {
-        self::initialize();
-        if (!isset(self::$contracts[$id])) {
+        // Será reemplazado por la versión de instancia
+        return false;
+    }
+
+    /**
+     * Eliminar un contrato (versión de instancia)
+     */
+    public function deleteExistingContract(int $id): bool
+    {
+        $contract = $this->entityManager->getRepository(Contract::class)->find($id);
+        
+        if (!$contract) {
             return false;
         }
 
-        unset(self::$contracts[$id]);
-        self::save();
+        $this->entityManager->remove($contract);
+        $this->entityManager->flush();
         return true;
     }
 
     /**
-     * Obtener el próximo ID disponible
+     * Convertir entidad Contract a array
+     */
+    private function contractToArray(Contract $contract): array
+    {
+        return [
+            'id' => $contract->getId(),
+            'contractNumber' => $contract->getContractNumber(),
+            'contractDate' => $contract->getContractDate()->format('Y-m-d'),
+            'contractValue' => (float)$contract->getContractValue(),
+            'paymentMethod' => $contract->getPaymentMethod(),
+            'clientName' => $contract->getClientName(),
+            'description' => $contract->getDescription(),
+            'status' => $contract->getStatus(),
+            'createdAt' => $contract->getCreatedAt()->format('Y-m-d H:i:s'),
+            'updatedAt' => $contract->getUpdatedAt() ? $contract->getUpdatedAt()->format('Y-m-d H:i:s') : null,
+        ];
+    }
+
+    /**
+     * Obtener el próximo ID disponible (ya no necesario con MySQL auto-increment)
      */
     public static function getNextId(): int
     {
-        self::initialize();
-        return self::$nextId;
+        // Con MySQL auto-increment, esto no es necesario
+        return 0;
     }
 }
+
 

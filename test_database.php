@@ -38,10 +38,7 @@ try {
     // Configurar Doctrine
     $config = ORMSetup::createAttributeMetadataConfiguration(
         [__DIR__ . '/src'],
-        $_ENV['APP_ENV'] === 'dev',
-        null,
-        null,
-        false
+        $_ENV['APP_ENV'] === 'dev'
     );
 
     // Crear conexión

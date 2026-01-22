@@ -32,6 +32,7 @@ class ContractController extends AbstractController
         private SerializerInterface $serializer,
         private ValidatorInterface $validator,
         private InstallmentProjectionService $projectionService,
+        private ContractStorage $contractStorage,
     ) {}
 
     /**
@@ -59,7 +60,7 @@ class ContractController extends AbstractController
             }
 
             // Crear contrato usando el servicio de almacenamiento
-            $contract = ContractStorage::createContract([
+            $contract = $this->contractStorage->createNewContract([
                 'contractNumber' => $contractRequest->getContractNumber(),
                 'contractDate' => $contractRequest->getContractDate(),
                 'contractValue' => $contractRequest->getContractValue(),
@@ -88,7 +89,7 @@ class ContractController extends AbstractController
     public function getAllContracts(): JsonResponse
     {
         try {
-            $contracts = ContractStorage::getAllContracts();
+            $contracts = $this->contractStorage->getAllContractsFromDb();
 
             return $this->json([
                 'status' => 'success',
@@ -109,7 +110,7 @@ class ContractController extends AbstractController
     public function getContractById(int $id): JsonResponse
     {
         try {
-            $contract = ContractStorage::getContract($id);
+            $contract = $this->contractStorage->getContractById($id);
 
             if (!$contract) {
                 return $this->json([
@@ -156,7 +157,7 @@ class ContractController extends AbstractController
 
             // Validar que el contrato existe
             $contractId = $projectionRequest->getContractId();
-            $contract = ContractStorage::getContract($contractId);
+            $contract = $this->contractStorage->getContractById($contractId);
             
             if (!$contract) {
                 return $this->json([

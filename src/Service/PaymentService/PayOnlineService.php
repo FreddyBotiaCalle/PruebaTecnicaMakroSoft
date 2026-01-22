@@ -19,13 +19,13 @@ class PayOnlineService implements PaymentServiceInterface
         int $installmentNumber
     ): float {
         // Calcular interés sobre el saldo pendiente
-        $interest = ($pendingBalance * $this->INTEREST_RATE) / 100;
+        $interest = ($pendingBalance * self::INTEREST_RATE) / 100;
 
         // Sumar la cuota base con el interés
         $installmentWithInterest = $installmentValue + $interest;
 
         // Calcular tarifa de pago sobre el total (cuota + interés)
-        $fee = ($installmentWithInterest * $this->PAYMENT_FEE) / 100;
+        $fee = ($installmentWithInterest * self::PAYMENT_FEE) / 100;
 
         // Retornar el valor final
         return $installmentWithInterest + $fee;
