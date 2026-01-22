@@ -59,6 +59,27 @@ class ContractStorage
     }
 
     /**
+     * Obtener todos los contratos desde JSON (alternativa sin base de datos)
+     */
+    public function getAllContractsFromJson(): array
+    {
+        $contractsFile = dirname(__DIR__, 2) . '/var/contracts.json';
+        
+        if (!file_exists($contractsFile)) {
+            return [];
+        }
+
+        $jsonContent = file_get_contents($contractsFile);
+        $data = json_decode($jsonContent, true);
+
+        if (!$data || !isset($data['contracts'])) {
+            return [];
+        }
+
+        return array_values($data['contracts']);
+    }
+
+    /**
      * Crear un nuevo contrato
      */
     public static function createContract(array $data): array
