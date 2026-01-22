@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Service\PaymentService\PayPalService;
 use App\Service\PaymentService\PaymentServiceInterface;
 use App\Service\PaymentService\PayOnlineService;
+use App\Service\PaymentService\NequiService;
 
 /**
  * Class ContractPaymentServiceResolver
@@ -16,11 +17,13 @@ class ContractPaymentServiceResolver
 {
     private PayPalService $payPalService;
     private PayOnlineService $payOnlineService;
+    private NequiService $nequiService;
 
     public function __construct()
     {
         $this->payPalService = new PayPalService();
         $this->payOnlineService = new PayOnlineService();
+        $this->nequiService = new NequiService();
     }
 
     /**
@@ -35,8 +38,9 @@ class ContractPaymentServiceResolver
         return match ($paymentMethodName) {
             'PayPal' => $this->payPalService,
             'PayOnline' => $this->payOnlineService,
+            'Nequi' => $this->nequiService,
             default => throw new \InvalidArgumentException(
-                "Método de pago '{$paymentMethodName}' no soportado. Use 'PayPal' o 'PayOnline'."
+                "Método de pago '{$paymentMethodName}' no soportado. Use 'PayPal', 'PayOnline' o 'Nequi'."
             )
         };
     }

@@ -235,6 +235,10 @@ class ContractController extends AbstractController
                     $fee = ($monthlyBase + $interest) * 0.01; // 1% fee
                 }
 
+                if ($nequiService === 'Nequi') {
+                    $fee = ($monthlyBase + $interest) * 0.005; // 0.5% fee for Nequi
+                }
+
                 $installments[] = [
                     'number' => $i,
                     'dueDate' => $dueDate->format('Y-m-d'),
