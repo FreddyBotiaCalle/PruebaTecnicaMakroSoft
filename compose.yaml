@@ -1,5 +1,24 @@
 
 services:
+###> Aplicación Symfony ###
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: contratos_app
+    ports:
+      - "8000:8000"
+    depends_on:
+      database:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: "mysql://contratos_user:contratos_pass@database:3306/contratos_db?serverVersion=8.0.32&charset=utf8mb4"
+      APP_ENV: dev
+    volumes:
+      - .:/app
+    command: php -S 0.0.0.0:8000 -t public
+###< Aplicación Symfony ###
+
 ###> doctrine/doctrine-bundle ###
   database:
     image: mysql:${MYSQL_VERSION:-8.0}
