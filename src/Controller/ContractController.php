@@ -133,6 +133,49 @@ class ContractController extends AbstractController
     }
 
     /**
+     * Eliminar un contrato por ID
+     */
+    #[Route('/api/contracts/{id}', methods: ['DELETE'])]
+    public function deleteContract(int $id): JsonResponse
+    {
+        try {
+            // Validar que el contrato existe
+            $contract = $this->contractStorage->getContractById($id);
+            
+            if (!$contract) {
+                return $this->json([
+                    'status' => 'error',
+                    'message' => 'Contrato no encontrado'
+                ], Response::HTTP_NOT_FOUND);
+            }
+
+            // Eliminar el contrato
+            $deleted = $this->contractStorage->deleteExistingContract($id);
+
+            if (!$deleted) {
+                return $this->json([
+                    'status' => 'error',
+                    'message' => 'Error al eliminar el contrato'
+                ], Response::HTTP_INTERNAL_SERVER_ERROR);
+            }
+
+            return $this->json([
+                'status' => 'success',
+                'message' => 'Contrato eliminado exitosamente',
+                'data' => [
+                    'id' => $id,
+                    'contractNumber' => $contract['contractNumber']
+                ]
+            ], Response::HTTP_OK);
+        } catch (\Exception $e) {
+            return $this->json([
+                'status' => 'error',
+                'message' => 'Error al eliminar el contrato: ' . $e->getMessage()
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
      * Proyectar cuotas de un contrato
      */
     #[Route('/api/contracts/projection/calculate', methods: ['POST'])]
