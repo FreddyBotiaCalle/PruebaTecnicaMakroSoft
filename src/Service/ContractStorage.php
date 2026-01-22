@@ -80,6 +80,52 @@ class ContractStorage
     }
 
     /**
+     * Crear un nuevo contrato en JSON (alternativa sin base de datos)
+     */
+    public function createNewContractInJson(array $data): array
+    {
+        $contractsFile = dirname(__DIR__, 2) . '/var/contracts.json';
+        
+        // Leer contratos existentes
+        $fileData = ['contracts' => []];
+        if (file_exists($contractsFile)) {
+            $jsonContent = file_get_contents($contractsFile);
+            $fileData = json_decode($jsonContent, true);
+            if (!$fileData) {
+                $fileData = ['contracts' => []];
+            }
+        }
+
+        // Obtener el siguiente ID
+        $nextId = 1;
+        if (!empty($fileData['contracts'])) {
+            $lastId = max(array_keys($fileData['contracts']));
+            $nextId = (int)$lastId + 1;
+        }
+
+        // Crear nuevo contrato
+        $newContract = [
+            'id' => $nextId,
+            'contractNumber' => $data['contractNumber'] ?? 'CNT-' . date('Y-m-d-His'),
+            'contractDate' => $data['contractDate'] ?? date('Y-m-d'),
+            'contractValue' => (float)($data['contractValue'] ?? 0),
+            'paymentMethod' => $data['paymentMethod'] ?? 'PayPal',
+            'clientName' => $data['clientName'] ?? 'Sin nombre',
+            'description' => $data['description'] ?? '',
+            'status' => $data['status'] ?? 'PENDING',
+            'createdAt' => date('Y-m-d H:i:s'),
+        ];
+
+        // Agregar a la lista
+        $fileData['contracts'][$nextId] = $newContract;
+
+        // Guardar en archivo
+        file_put_contents($contractsFile, json_encode($fileData, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+
+        return $newContract;
+    }
+
+    /**
      * Crear un nuevo contrato
      */
     public static function createContract(array $data): array

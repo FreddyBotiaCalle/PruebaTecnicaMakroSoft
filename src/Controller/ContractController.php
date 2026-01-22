@@ -89,8 +89,7 @@ class ContractController extends AbstractController
     public function getAllContracts(): JsonResponse
     {
         try {
-            // Usar JSON en lugar de base de datos para evitar errores de driver
-            $contracts = $this->contractStorage->getAllContractsFromJson();
+            $contracts = $this->contractStorage->getAllContractsFromDb();
 
             return $this->json([
                 'status' => 'success',
