@@ -18,7 +18,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"contractNumber\": \"CNT-2025-001\",\n  \"contractDate\": \"2025-01-22\",\n  \"contractValue\": 10000,\n  \"paymentMethod\": \"paypal\",\n  \"clientName\": \"Empresa ABC\",\n  \"description\": \"Contrato de servicios profesionales\"\n}"
+          "raw": "{\n  \"contractNumber\": \"CNT-2025-001\",\n  \"contractDate\": \"2025-01-22\",\n  \"contractValue\": 10000,\n  \"paymentMethod\": \"PayPal\",\n  \"clientName\": \"Empresa ABC\",\n  \"description\": \"Contrato de servicios profesionales\"\n}"
         },
         "url": {
           "raw": "{{baseUrl}}/api/contracts",
@@ -45,7 +45,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"contractNumber\": \"CNT-2025-002\",\n  \"contractDate\": \"2025-01-22\",\n  \"contractValue\": 25000,\n  \"paymentMethod\": \"payonline\",\n  \"clientName\": \"Empresa XYZ\",\n  \"description\": \"Contrato de consultoría empresarial\"\n}"
+          "raw": "{\n  \"contractNumber\": \"CNT-2025-002\",\n  \"contractDate\": \"2025-01-22\",\n  \"contractValue\": 25000,\n  \"paymentMethod\": \"PayOnline\",\n  \"clientName\": \"Empresa XYZ\",\n  \"description\": \"Contrato de consultoría empresarial\"\n}"
         },
         "url": {
           "raw": "{{baseUrl}}/api/contracts",
@@ -109,7 +109,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"contractId\": 1,\n  \"numberOfMonths\": 12,\n  \"paymentMethod\": \"paypal\"\n}"
+          "raw": "{\n  \"contractId\": 1,\n  \"numberOfMonths\": 12,\n  \"paymentMethod\": \"PayPal\"\n}"
         },
         "url": {
           "raw": "{{baseUrl}}/api/contracts/projection/calculate",
@@ -138,7 +138,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"contractId\": 2,\n  \"numberOfMonths\": 24,\n  \"paymentMethod\": \"payonline\"\n}"
+          "raw": "{\n  \"contractId\": 2,\n  \"numberOfMonths\": 24,\n  \"paymentMethod\": \"PayOnline\"\n}"
         },
         "url": {
           "raw": "{{baseUrl}}/api/contracts/projection/calculate",
@@ -167,7 +167,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"contractId\": 1,\n  \"numberOfMonths\": 12,\n  \"paymentMethod\": \"payonline\"\n}"
+          "raw": "{\n  \"contractId\": 1,\n  \"numberOfMonths\": 12,\n  \"paymentMethod\": \"PayOnline\"\n}"
         },
         "url": {
           "raw": "{{baseUrl}}/api/contracts/projection/calculate",
@@ -196,7 +196,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"contractNumber\": \"CNT-2025-003\",\n  \"contractDate\": \"2025-02-15\",\n  \"contractValue\": 5000,\n  \"paymentMethod\": \"paypal\",\n  \"clientName\": \"Startup ABC\",\n  \"description\": \"Contrato de inicio\"\n}"
+          "raw": "{\n  \"contractNumber\": \"CNT-2025-003\",\n  \"contractDate\": \"2025-02-15\",\n  \"contractValue\": 5000,\n  \"paymentMethod\": \"PayPal\",\n  \"clientName\": \"Startup ABC\",\n  \"description\": \"Contrato de inicio\"\n}"
         },
         "url": {
           "raw": "{{baseUrl}}/api/contracts",
@@ -223,7 +223,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"contractId\": 3,\n  \"numberOfMonths\": 6,\n  \"paymentMethod\": \"paypal\"\n}"
+          "raw": "{\n  \"contractId\": 3,\n  \"numberOfMonths\": 6,\n  \"paymentMethod\": \"PayPal\"\n}"
         },
         "url": {
           "raw": "{{baseUrl}}/api/contracts/projection/calculate",
@@ -252,7 +252,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"contractId\": 1,\n  \"numberOfMonths\": 36,\n  \"paymentMethod\": \"payonline\"\n}"
+          "raw": "{\n  \"contractId\": 1,\n  \"numberOfMonths\": 36,\n  \"paymentMethod\": \"PayOnline\"\n}"
         },
         "url": {
           "raw": "{{baseUrl}}/api/contracts/projection/calculate",

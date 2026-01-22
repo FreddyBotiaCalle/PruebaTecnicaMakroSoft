@@ -6,70 +6,48 @@ use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 
-/**
- * @ORM\Entity
- * @ORM\Table(name="contracts")
- */
+#[ORM\Entity]
+#[ORM\Table(name: 'contracts')]
 class Contract
 {
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
-     * @Groups({"contract:read", "contract:write"})
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
+    #[Groups(['contract:read', 'contract:write'])]
     private ?int $id = null;
 
-    /**
-     * @ORM\Column(type="string", length=50, unique=true)
-     * @Groups({"contract:read", "contract:write"})
-     */
+    #[ORM\Column(type: 'string', length: 50, unique: true)]
+    #[Groups(['contract:read', 'contract:write'])]
     private string $contractNumber;
 
-    /**
-     * @ORM\Column(type="datetime")
-     * @Groups({"contract:read", "contract:write"})
-     */
+    #[ORM\Column(type: 'datetime')]
+    #[Groups(['contract:read', 'contract:write'])]
     private DateTime $contractDate;
 
-    /**
-     * @ORM\Column(type="decimal", precision=12, scale=2)
-     * @Groups({"contract:read", "contract:write"})
-     */
+    #[ORM\Column(type: 'decimal', precision: 12, scale: 2)]
+    #[Groups(['contract:read', 'contract:write'])]
     private string $contractValue;
 
-    /**
-     * @ORM\Column(type="string", length=20)
-     * @Groups({"contract:read", "contract:write"})
-     */
+    #[ORM\Column(type: 'string', length: 20)]
+    #[Groups(['contract:read', 'contract:write'])]
     private string $paymentMethod;
 
-    /**
-     * @ORM\Column(type="string", length=100, nullable=true)
-     * @Groups({"contract:read", "contract:write"})
-     */
+    #[ORM\Column(type: 'string', length: 100, nullable: true)]
+    #[Groups(['contract:read', 'contract:write'])]
     private ?string $clientName = null;
 
-    /**
-     * @ORM\Column(type="text", nullable=true)
-     * @Groups({"contract:read", "contract:write"})
-     */
+    #[ORM\Column(type: 'text', nullable: true)]
+    #[Groups(['contract:read', 'contract:write'])]
     private ?string $description = null;
 
-    /**
-     * @ORM\Column(type="datetime")
-     */
+    #[ORM\Column(type: 'datetime')]
     private DateTime $createdAt;
 
-    /**
-     * @ORM\Column(type="datetime", nullable=true)
-     */
+    #[ORM\Column(type: 'datetime', nullable: true)]
     private ?DateTime $updatedAt = null;
 
-    /**
-     * @ORM\Column(type="string", length=20, options={"default": "PENDING"})
-     * @Groups({"contract:read", "contract:write"})
-     */
+    #[ORM\Column(type: 'string', length: 20, options: ['default' => 'PENDING'])]
+    #[Groups(['contract:read', 'contract:write'])]
     private string $status = 'PENDING';
 
     public function __construct()

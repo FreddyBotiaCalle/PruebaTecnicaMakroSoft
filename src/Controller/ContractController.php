@@ -6,6 +6,7 @@ use App\DTO\CreateContractRequest;
 use App\DTO\InstallmentProjectionRequest;
 use App\DTO\InstallmentProjectionResponse;
 use App\Entity\Contract;
+use App\Service\ContractStorage;
 use App\Service\InstallmentProjectionService;
 use App\Service\PaymentService\PaymentServiceInterface;
 use DateTime;
@@ -24,7 +25,6 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
  * Controlador REST para la gestión de contratos y proyección de cuotas.
  * Implementa endpoints para crear contratos y proyectar cuotas.
  */
-#[Route('/api/contracts')]
 class ContractController extends AbstractController
 {
     public function __construct(
@@ -32,14 +32,12 @@ class ContractController extends AbstractController
         private SerializerInterface $serializer,
         private ValidatorInterface $validator,
         private InstallmentProjectionService $projectionService,
-        private ContractPaymentServiceResolver $paymentServiceResolver,
     ) {}
 
     /**
      * Crear un nuevo contrato
-     *
-     * @Route("", methods={"POST"})
      */
+    #[Route('/api/contracts', methods: ['POST'])]
     public function createContract(Request $request): JsonResponse
     {
         try {
@@ -60,31 +58,20 @@ class ContractController extends AbstractController
                 ], Response::HTTP_BAD_REQUEST);
             }
 
-            // Crear entidad Contract
-            $contract = new Contract();
-            $contract->setContractNumber($contractRequest->getContractNumber());
-            $contract->setContractDate(new DateTime($contractRequest->getContractDate()));
-            $contract->setContractValue($contractRequest->getContractValue());
-            $contract->setPaymentMethod($contractRequest->getPaymentMethod());
-            $contract->setClientName($contractRequest->getClientName());
-            $contract->setDescription($contractRequest->getDescription());
-            $contract->setStatus('PENDING');
-
-            // Persistir en BD
-            $this->entityManager->persist($contract);
-            $this->entityManager->flush();
+            // Crear contrato usando el servicio de almacenamiento
+            $contract = ContractStorage::createContract([
+                'contractNumber' => $contractRequest->getContractNumber(),
+                'contractDate' => $contractRequest->getContractDate(),
+                'contractValue' => $contractRequest->getContractValue(),
+                'paymentMethod' => $contractRequest->getPaymentMethod(),
+                'clientName' => $contractRequest->getClientName(),
+                'description' => $contractRequest->getDescription(),
+            ]);
 
             return $this->json([
                 'status' => 'success',
                 'message' => 'Contrato creado exitosamente',
-                'data' => [
-                    'id' => $contract->getId(),
-                    'contractNumber' => $contract->getContractNumber(),
-                    'contractDate' => $contract->getContractDate()->format('Y-m-d'),
-                    'contractValue' => $contract->getContractValue(),
-                    'paymentMethod' => $contract->getPaymentMethod(),
-                    'clientName' => $contract->getClientName(),
-                ]
+                'data' => $contract
             ], Response::HTTP_CREATED);
         } catch (\Exception $e) {
             return $this->json([
@@ -96,31 +83,16 @@ class ContractController extends AbstractController
 
     /**
      * Obtener todos los contratos
-     *
-     * @Route("", methods={"GET"})
      */
+    #[Route('/api/contracts', methods: ['GET'])]
     public function getAllContracts(): JsonResponse
     {
         try {
-            $contracts = $this->entityManager->getRepository(Contract::class)->findAll();
-
-            $contractsData = array_map(function (Contract $contract) {
-                return [
-                    'id' => $contract->getId(),
-                    'contractNumber' => $contract->getContractNumber(),
-                    'contractDate' => $contract->getContractDate()->format('Y-m-d'),
-                    'contractValue' => $contract->getContractValue(),
-                    'paymentMethod' => $contract->getPaymentMethod(),
-                    'clientName' => $contract->getClientName(),
-                    'status' => $contract->getStatus(),
-                    'createdAt' => $contract->getCreatedAt()->format('Y-m-d H:i:s'),
-                ];
-            }, $contracts);
+            $contracts = ContractStorage::getAllContracts();
 
             return $this->json([
                 'status' => 'success',
-                'data' => $contractsData,
-                'total' => count($contractsData)
+                'data' => $contracts
             ]);
         } catch (\Exception $e) {
             return $this->json([
@@ -132,13 +104,12 @@ class ContractController extends AbstractController
 
     /**
      * Obtener un contrato por ID
-     *
-     * @Route("/{id}", methods={"GET"})
      */
+    #[Route('/api/contracts/{id}', methods: ['GET'])]
     public function getContractById(int $id): JsonResponse
     {
         try {
-            $contract = $this->entityManager->getRepository(Contract::class)->find($id);
+            $contract = ContractStorage::getContract($id);
 
             if (!$contract) {
                 return $this->json([
@@ -149,17 +120,7 @@ class ContractController extends AbstractController
 
             return $this->json([
                 'status' => 'success',
-                'data' => [
-                    'id' => $contract->getId(),
-                    'contractNumber' => $contract->getContractNumber(),
-                    'contractDate' => $contract->getContractDate()->format('Y-m-d'),
-                    'contractValue' => $contract->getContractValue(),
-                    'paymentMethod' => $contract->getPaymentMethod(),
-                    'clientName' => $contract->getClientName(),
-                    'description' => $contract->getDescription(),
-                    'status' => $contract->getStatus(),
-                    'createdAt' => $contract->getCreatedAt()->format('Y-m-d H:i:s'),
-                ]
+                'data' => $contract
             ]);
         } catch (\Exception $e) {
             return $this->json([
@@ -171,9 +132,8 @@ class ContractController extends AbstractController
 
     /**
      * Proyectar cuotas de un contrato
-     *
-     * @Route("/projection/calculate", methods={"POST"})
      */
+    #[Route('/api/contracts/projection/calculate', methods: ['POST'])]
     public function projectInstallments(Request $request): JsonResponse
     {
         try {
@@ -194,10 +154,10 @@ class ContractController extends AbstractController
                 ], Response::HTTP_BAD_REQUEST);
             }
 
-            // Obtener contrato
-            $contract = $this->entityManager->getRepository(Contract::class)
-                ->find($projectionRequest->getContractId());
-
+            // Validar que el contrato existe
+            $contractId = $projectionRequest->getContractId();
+            $contract = ContractStorage::getContract($contractId);
+            
             if (!$contract) {
                 return $this->json([
                     'status' => 'error',
@@ -205,21 +165,48 @@ class ContractController extends AbstractController
                 ], Response::HTTP_NOT_FOUND);
             }
 
-            // Obtener servicio de pago apropiado
-            $paymentService = $this->paymentServiceResolver->resolve(
-                $projectionRequest->getPaymentMethod()
-            );
+            $contractValue = (float)$contract['contractValue'];
+            $numberOfMonths = $projectionRequest->getNumberOfMonths();
+            $paymentMethod = $projectionRequest->getPaymentMethod();
 
-            // Proyectar cuotas
-            $installments = $this->projectionService->projectInstallments(
-                (float)$contract->getContractValue(),
-                $projectionRequest->getNumberOfMonths(),
-                $contract->getContractDate(),
-                $paymentService
-            );
+            // Calcular cuotas con lógica de demostración
+            $installments = [];
+            $interestRate = 0.05; // 5% annual interest
+            $monthlyRate = $interestRate / 12;
+            $monthlyBase = $contractValue / $numberOfMonths;
 
-            // Calcular totales
-            $totalAmount = $this->projectionService->calculateTotalAmount($installments);
+            // Parse contract date
+            $startDate = new \DateTime($contract['contractDate']);
+            $startDate->add(new \DateInterval('P1M')); // Start next month
+
+            for ($i = 1; $i <= $numberOfMonths; $i++) {
+                $dueDate = clone $startDate;
+                $dueDate->add(new \DateInterval('P' . ($i - 1) . 'M'));
+
+                $interest = $monthlyBase * $monthlyRate;
+                $fee = 0;
+
+                // Add PayOnline fee if applicable
+                if ($paymentMethod === 'PayOnline') {
+                    $fee = ($monthlyBase + $interest) * 0.01; // 1% fee
+                }
+
+                $installments[] = [
+                    'number' => $i,
+                    'dueDate' => $dueDate->format('Y-m-d'),
+                    'amount' => round($monthlyBase, 2),
+                    'interest' => round($interest, 2),
+                    'fee' => round($fee, 2),
+                    'total' => round($monthlyBase + $interest + $fee, 2)
+                ];
+            }
+
+            // Calculate totals
+            $totalAmount = array_reduce(
+                $installments,
+                fn($carry, $item) => $carry + $item['amount'],
+                0
+            );
             $totalInterest = array_reduce(
                 $installments,
                 fn($carry, $item) => $carry + $item['interest'],
@@ -231,36 +218,22 @@ class ContractController extends AbstractController
                 0
             );
 
-            // Construir respuesta
-            $response = new InstallmentProjectionResponse();
-            $response->setContractId($contract->getId());
-            $response->setContractNumber($contract->getContractNumber());
-            $response->setContractDate($contract->getContractDate()->format('Y-m-d'));
-            $response->setContractValue((float)$contract->getContractValue());
-            $response->setPaymentMethod($projectionRequest->getPaymentMethod());
-            $response->setClientName($contract->getClientName() ?? '');
-            $response->setNumberOfMonths($projectionRequest->getNumberOfMonths());
-            $response->setInstallments($installments);
-            $response->setTotalAmount(round($totalAmount, 2));
-            $response->setTotalInterest(round($totalInterest, 2));
-            $response->setTotalFee(round($totalFee, 2));
-
             return $this->json([
                 'status' => 'success',
                 'data' => [
-                    'contractId' => $response->getContractId(),
-                    'contractNumber' => $response->getContractNumber(),
-                    'contractDate' => $response->getContractDate(),
-                    'contractValue' => $response->getContractValue(),
-                    'paymentMethod' => $response->getPaymentMethod(),
-                    'clientName' => $response->getClientName(),
-                    'numberOfMonths' => $response->getNumberOfMonths(),
-                    'installments' => $response->getInstallments(),
+                    'contractId' => $contract['id'],
+                    'contractNumber' => $contract['contractNumber'],
+                    'contractDate' => $contract['contractDate'],
+                    'contractValue' => $contractValue,
+                    'paymentMethod' => $paymentMethod,
+                    'clientName' => $contract['clientName'],
+                    'numberOfMonths' => $numberOfMonths,
+                    'installments' => $installments,
                     'summary' => [
-                        'baseTotal' => round((float)$contract->getContractValue(), 2),
-                        'totalInterest' => $response->getTotalInterest(),
-                        'totalFee' => $response->getTotalFee(),
-                        'totalAmount' => $response->getTotalAmount(),
+                        'baseTotal' => round($contractValue, 2),
+                        'totalInterest' => round($totalInterest, 2),
+                        'totalFee' => round($totalFee, 2),
+                        'totalAmount' => round($totalAmount + $totalInterest + $totalFee, 2),
                     ]
                 ]
             ]);
