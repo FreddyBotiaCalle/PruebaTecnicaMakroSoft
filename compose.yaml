@@ -29,7 +29,7 @@ services:
       MYSQL_USER: ${MYSQL_USER:-contratos_user}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:-contratos_pass}
     ports:
-      - "3306:3306"
+      - "3307:3306"
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-contratos_pass}"]
       timeout: 5s

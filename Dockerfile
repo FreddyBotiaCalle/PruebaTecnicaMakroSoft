@@ -1,5 +1,5 @@
-# Imagen base PHP 8.2 CLI
-FROM php:8.2-cli
+# Imagen base PHP 8.4 CLI
+FROM php:8.4-cli
 
 # Establecer directorio de trabajo
 WORKDIR /app
